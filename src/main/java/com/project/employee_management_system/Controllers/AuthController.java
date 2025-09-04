@@ -3,9 +3,11 @@ package com.project.employee_management_system.Controllers;
 import com.project.employee_management_system.Models.User;
 import com.project.employee_management_system.Repositories.UserRepo;
 import com.project.employee_management_system.Services.UserService;
+import com.project.employee_management_system.Utilities.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +24,10 @@ public class AuthController {
     private UserService userService;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtil jwtUtil;
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody Map<String, String> body) {
         String userName = body.get("userName");
@@ -37,7 +43,7 @@ public class AuthController {
         return new ResponseEntity<>("Registered Successfully!", HttpStatus.CREATED);
     }
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@Valid @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody Map<String, String> body) {
         String userName = body.get("userName");
         String password = body.get("password");
         String email = body.get("email");
@@ -52,5 +58,10 @@ public class AuthController {
         if(userRepo.findByEmail(email).isPresent()) {
             return new ResponseEntity<>("Email already exists!", HttpStatus.CONFLICT);
         }
+        if(!passwordEncoder.matches(password, user.getPassword())) {
+            return new ResponseEntity<>("Password doesn't match!", HttpStatus.CONFLICT);
+        }
+        String token = jwtUtil.generateToken(email);
+        return ResponseEntity.ok(Map.of("token:", token));
     }
 }
