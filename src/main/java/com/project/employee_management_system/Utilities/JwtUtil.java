@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final String Secret = "Secrestshh!";
+    private final String Secret = "mysupersecretkeymysupersecretkey1234";
     private final long Expiration = 1000 * 60 * 60 * 24; // Validity of a token
     private final Key SecurityKey = Keys.hmacShaKeyFor(Secret.getBytes(StandardCharsets.UTF_8));
     public String generateToken(String email) {
@@ -23,17 +23,21 @@ public class JwtUtil {
                 .signWith(SecurityKey, SignatureAlgorithm.HS256)
                 .compact();
     }
+    public String extractEmail(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SecurityKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
     public boolean validateJwtToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(SecurityKey)
-                    .build()
-                    .parseClaimsJwt(token)
-                    .getBody()
-                    .getSubject();
+            extractEmail(token);
             return true;
         }
         catch (JwtException jwtE) {
+            System.out.println("JWT validation failed: " + jwtE.getMessage());
             return false;
         }
     }

@@ -16,24 +16,19 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.Map;
 
-
 @RestController
-@RequestMapping("/auth/user")
+@RequestMapping("/auth")
 public class AuthController {
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private UserRepo userRepo;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtUtil jwtUtil;
+    @Autowired private UserService userService;
+    @Autowired private UserRepo userRepo;
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private JwtUtil jwtUtil;
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody Map<String, String> body) {
         String userName = body.get("userName");
-        String password = body.get("password");
+        String password = passwordEncoder.encode(body.get("password"));
         String email = body.get("email");
-        if(userRepo.findByName(userName).isPresent()) {
+        if(userRepo.findByUserName(userName).isPresent()) {
             return new ResponseEntity<>("UserName already exists!", HttpStatus.CONFLICT);
         }
         if(userRepo.findByEmail(email).isPresent()) {
@@ -51,12 +46,6 @@ public class AuthController {
         User user = userOptional.get();
         if(userOptional.isEmpty()) {
             return new ResponseEntity<>("User doesn't exists!", HttpStatus.UNAUTHORIZED);
-        }
-        if(userRepo.findByName(userName).isPresent()) {
-            return new ResponseEntity<>("UserName already exists!", HttpStatus.CONFLICT);
-        }
-        if(userRepo.findByEmail(email).isPresent()) {
-            return new ResponseEntity<>("Email already exists!", HttpStatus.CONFLICT);
         }
         if(!passwordEncoder.matches(password, user.getPassword())) {
             return new ResponseEntity<>("Password doesn't match!", HttpStatus.CONFLICT);
