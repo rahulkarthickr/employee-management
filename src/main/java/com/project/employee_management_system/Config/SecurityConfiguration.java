@@ -1,5 +1,6 @@
-package com.project.employee_management_system;
+package com.project.employee_management_system.Config;
 
+import com.project.employee_management_system.Filter.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
